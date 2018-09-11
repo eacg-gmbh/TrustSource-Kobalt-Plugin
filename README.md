@@ -1,0 +1,1 @@
+# TrustSource-Kobalt-Plugin
