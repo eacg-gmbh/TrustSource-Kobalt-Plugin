@@ -1,0 +1,6 @@
+<kobalt-plugin>
+    <name>ecs-kobalt-plugin</name>
+    <plugin-actors>
+        <class-name>de.eacg.ecs.plugin.EcsPlugin</class-name>
+    </plugin-actors>
+</kobalt-plugin>
