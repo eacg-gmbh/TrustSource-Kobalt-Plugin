@@ -10,5 +10,5 @@ class PluginConfig(var credentials: String? = null,
                    var skip: Boolean = false,
                    var skipTransfer: Boolean = false,
                    var verbose: Boolean = false,
-                   var baseUrl: String = "https://ecs-app.eacg.de",
+                   var baseUrl: String = "https://app.trustsource.io",
                    var apiPath: String = "/api/v1")

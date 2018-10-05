@@ -20,6 +20,7 @@ val p = project {
     group = "de.eacg"
     artifactId = name
     version = "0.1"
+    description = "Plugin for Kobalt to scan the dependencies for TrustSource"
 
     sourceDirectories {
         path("src/main/kotlin")
@@ -36,10 +37,12 @@ val p = project {
         // compile("com.beust:kobalt:")
 
         compile("de.eacg:ecs-java-client:0.1.0")
+        compile("org.codehaus.plexus:plexus-utils:jar:3.1.0")
     }
 
     dependenciesTest {
         compile("org.testng:testng:6.10")
+        compile("com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0-RC2")
     }
 
     assemble {
