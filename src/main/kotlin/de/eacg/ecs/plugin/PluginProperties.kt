@@ -1,7 +1,5 @@
 package de.eacg.ecs.plugin
 
-import java.util.*
-
 /**
  * Propertyholder for informations about the plugin itself.
  *

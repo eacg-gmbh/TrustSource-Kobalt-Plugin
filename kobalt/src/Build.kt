@@ -1,6 +1,9 @@
 import com.beust.kobalt.*
 import com.beust.kobalt.plugin.packaging.*
 // import de.eacg.ecs.plugin.ecsConfig // uncomment for development
+import org.apache.maven.model.License
+import org.apache.maven.model.Model
+import org.apache.maven.model.Scm
 
 val bs = buildScript {
     repos()
@@ -21,6 +24,7 @@ val p = project {
     artifactId = name
     version = "0.1"
     description = "Plugin for Kobalt to scan the dependencies for TrustSource"
+    url = "https://github.com/eacg-gmbh/TrustSource-Kobalt-Plugin"
 
     sourceDirectories {
         path("src/main/kotlin")
@@ -36,7 +40,7 @@ val p = project {
         // dependency for development and debugging
         // compile("com.beust:kobalt:")
 
-        compile("de.eacg:ecs-java-client:0.1.0")
+        compile("de.eacg:ecs-java-client:0.2.0")
         compile("org.codehaus.plexus:plexus-utils:jar:3.1.0")
     }
 
@@ -47,6 +51,19 @@ val p = project {
 
     assemble {
         jar {
+        }
+    }
+
+    pom = Model().apply {
+        name = "ECS Kobalt Plugin"
+        description = project.description
+        url = project.url
+        licenses = listOf(License().apply {
+            name = "MIT"
+            url = "https://raw.githubusercontent.com/eacg-gmbh/TrustSource-Kobalt-Plugin/master/LICENSE"
+        })
+        scm = Scm().apply {
+            url = "https://github.com/eacg-gmbh/TrustSource-Kobalt-Plugin"
         }
     }
 }

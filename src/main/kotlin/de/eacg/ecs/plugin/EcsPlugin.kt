@@ -46,8 +46,7 @@ class EcsPlugin : BasePlugin() {
 
         validateConfig()
 
-        // TODO: check requirements, loops in dependencies will result in an infinity loop
-        val rootDependency = DependencyTreeBuilder(project).build()
+        val rootDependency = DependencyTreeBuilder(project, verbose = config?.verbose ?: false).build()
 
         if (config?.verbose == true) printDependencies(listOf(rootDependency))
 

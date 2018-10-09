@@ -15,8 +15,11 @@ import java.nio.file.Paths
  * Takes the project and builds the dependency tree until a given level.
  * @param project Kobalt-project for which the dependency tree should be built
  * @param level the dept of the dependency tree (0 = all dependencies, default)
+ * @param skipDoubleEntries if true skips dependencies that are already in the tree (default = true)
+ * @param verbose prints out additional information (default = false)
  */
-class DependencyTreeBuilder(val project: Project, var level: Int = 0) {
+class DependencyTreeBuilder(private val project: Project, private val level: Int = 0, private val skipDoubleEntries: Boolean = true, var verbose: Boolean = false) {
+    private val dependencyMemory = HashSet<String>()
 
     /**
      * Builds the dependency tree for the given project.
@@ -40,42 +43,63 @@ class DependencyTreeBuilder(val project: Project, var level: Int = 0) {
             }
         }
 
+        dependencyMemory.clear()
+
         return builder.buildDependency()
     }
 
     internal fun mapDependencies(dependencies: List<IClasspathDependency>, currentLevel: Int): List<Dependency> =
-            dependencies.filter { it.isMaven }.map {
-                val mvnIt = it.toMavenDependencies()
-                val builder = Dependency.Builder()
-                builder.setKey("mvn:${mvnIt.groupId}:${mvnIt.artifactId}")
-                builder.setName(mvnIt.artifactId)
-                builder.addVersion(mvnIt.version)
-
-                if (it is AetherDependency) {
-                    val pomModel = getPomModel(it)
-                    if (pomModel != null) {
-                        builder.setDescription(pomModel.description)
-                        builder.setHomepageUrl(pomModel.url)
-                        builder.setRepoUrl(pomModel.scm?.url)
-                        pomModel.licenses?.forEach {
-                            if (it.name != null && it.url != null) {
-                                builder.addLicense(it.name, it.url)
-                            } else if (it.name != null) {
-                                builder.addLicense(it.name)
+            dependencies.filter { it.isMaven }
+                    .map { Pair(it, it.toMavenDependencies()) }
+                    .filter {
+                        if (skipDoubleEntries) {
+                            val key = "${it.second.groupId}:${it.second.artifactId}:${it.second.version}"
+                            if (dependencyMemory.contains(key)) {
+                                if (verbose) println("Skipping $key because it is already in the tree")
+                                false
+                            } else {
+                                dependencyMemory.add(key)
+                                true
                             }
+                        } else {
+                            true
                         }
                     }
-                }
+                    .map {
+                        val dependency = it.first
+                        val mvnDependency = it.second
+                        val builder = Dependency.Builder()
+                        builder.setKey("mvn:${mvnDependency.groupId}:${mvnDependency.artifactId}")
+                        builder.setName(mvnDependency.artifactId)
+                        builder.addVersion(mvnDependency.version)
 
-                val nextLevel = currentLevel + 1
-                if (level == 0 || level > nextLevel) {
-                    mapDependencies(it.directDependencies(), nextLevel).forEach { dependency: Dependency ->
-                        builder.addDependency(dependency)
+                        if (dependency is AetherDependency) {
+                            val pomModel = getPomModel(dependency)
+                            if (pomModel != null) {
+                                builder.setDescription(pomModel.description)
+                                builder.setHomepageUrl(pomModel.url)
+                                builder.setRepoUrl(pomModel.scm?.url)
+                                pomModel.licenses?.forEach {
+                                    if (it.name != null && it.url != null) {
+                                        builder.addLicense(it.name, it.url)
+                                    } else if (it.name != null) {
+                                        builder.addLicense(it.name)
+                                    }
+                                }
+                            } else if (verbose) {
+                                println("could not find pom model for ${mvnDependency.groupId}:${mvnDependency.artifactId}:${mvnDependency.version}")
+                            }
+                        }
+
+                        val nextLevel = currentLevel + 1
+                        if (level == 0 || level > nextLevel) {
+                            mapDependencies(dependency.directDependencies(), nextLevel).forEach { dependency: Dependency ->
+                                builder.addDependency(dependency)
+                            }
+                        }
+
+                        builder.buildDependency()
                     }
-                }
-
-                builder.buildDependency()
-            }
 
     internal fun getPomModel(dependency: AetherDependency): Model? {
         val jarFile = dependency.aether.resolve(dependency.artifact).root?.artifact?.file
@@ -85,8 +109,7 @@ class DependencyTreeBuilder(val project: Project, var level: Int = 0) {
                 val reader = MavenXpp3Reader()
                 val fileReader = FileReader(pomFilePath)
                 return reader.read(fileReader)
-            }
-            catch (e: java.lang.Exception) {
+            } catch (e: java.lang.Exception) {
                 warn("Exception during pom parsing", e)
             }
         }
