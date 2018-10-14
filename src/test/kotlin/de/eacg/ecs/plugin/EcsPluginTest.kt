@@ -13,34 +13,32 @@ class EcsPluginTest {
     @BeforeMethod
     fun before() {
         instance = EcsPlugin()
-        instance.config = PluginConfig()
     }
 
     @Test(expectedExceptions = [InvalidConfigurationException::class])
     fun testValidateConfigFails() {
+        instance.config = PluginConfig()
         instance.validateConfig()
     }
 
     @Test
     fun testValidateConfig() {
-        fillConfig()
+        instance.config = generateConfig(false)
         instance.validateConfig()
 
-        instance.config = PluginConfig().apply {
-            projectName = "My Project"
-            credentials = "credentials-file.json"
-        }
+        instance.config = generateConfig(true)
         instance.validateConfig()
     }
 
     @Test(expectedExceptions = [InvalidConfigurationException::class])
     fun testCreateApiConfigFails() {
+        instance.config = PluginConfig()
         instance.createApiClientConfig()
     }
 
     @Test
     fun testCreateApiConfig() {
-        fillConfig()
+        instance.config = generateConfig(false)
         val result = instance.createApiClientConfig()
 
         val config = instance.config
@@ -48,18 +46,5 @@ class EcsPluginTest {
         Assert.assertEquals(config?.apiPath, result.getProperty("apiPath"))
         Assert.assertEquals(config?.userName, result.getProperty("userName"))
         Assert.assertEquals(config?.apiKey, result.getProperty("apiKey"))
-    }
-
-    @Test
-    fun testTransferScan() {
-        // TODO
-    }
-
-    private fun fillConfig() {
-        instance.config?.apply {
-            projectName = "My Project"
-            userName = "test@example.com"
-            apiKey = "1234"
-        }
     }
 }

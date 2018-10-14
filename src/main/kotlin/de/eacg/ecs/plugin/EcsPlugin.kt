@@ -113,7 +113,7 @@ class EcsPlugin : BasePlugin() {
 
         val missingConfigKeys = apiConfig.validate()
         if (missingConfigKeys.isNotEmpty()) {
-            throw InvalidConfigurationException("Missing keys for api-configuration: $missingConfigKeys") // TODO use reduce
+            throw InvalidConfigurationException("Missing keys for api-configuration: ${missingConfigKeys.reduce{ acc, s -> "$acc, $s" }}")
         }
 
         return apiConfig
@@ -122,7 +122,7 @@ class EcsPlugin : BasePlugin() {
     private fun createEmptyJsonProperties(): JsonProperties =
             JsonProperties(ByteArrayInputStream(emptyJsonObject.toByteArray(StandardCharsets.UTF_8)))
 
-    internal fun transferScan(scan: Scan) {
+    private fun transferScan(scan: Scan) {
         try {
             val body = apiClient?.transferScan(scan)
             println("$prefixPluginLog Response: code: ${apiClient?.responseStatus}, message: $body")

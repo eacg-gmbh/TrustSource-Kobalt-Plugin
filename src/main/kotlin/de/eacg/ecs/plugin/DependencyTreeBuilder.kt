@@ -18,7 +18,7 @@ import java.nio.file.Paths
  * @param skipDoubleEntries if true skips dependencies that are already in the tree (default = true)
  * @param verbose prints out additional information (default = false)
  */
-class DependencyTreeBuilder(private val project: Project, private val level: Int = 0, private val skipDoubleEntries: Boolean = true, var verbose: Boolean = false) {
+open class DependencyTreeBuilder(private val project: Project, private val level: Int = 0, private val skipDoubleEntries: Boolean = true, var verbose: Boolean = false) {
     private val dependencyMemory = HashSet<String>()
 
     /**
@@ -61,9 +61,7 @@ class DependencyTreeBuilder(private val project: Project, private val level: Int
                                 dependencyMemory.add(key)
                                 true
                             }
-                        } else {
-                            true
-                        }
+                        } else true
                     }
                     .map {
                         val dependency = it.first
@@ -73,22 +71,20 @@ class DependencyTreeBuilder(private val project: Project, private val level: Int
                         builder.setName(mvnDependency.artifactId)
                         builder.addVersion(mvnDependency.version)
 
-                        if (dependency is AetherDependency) {
-                            val pomModel = getPomModel(dependency)
-                            if (pomModel != null) {
-                                builder.setDescription(pomModel.description)
-                                builder.setHomepageUrl(pomModel.url)
-                                builder.setRepoUrl(pomModel.scm?.url)
-                                pomModel.licenses?.forEach {
-                                    if (it.name != null && it.url != null) {
-                                        builder.addLicense(it.name, it.url)
-                                    } else if (it.name != null) {
-                                        builder.addLicense(it.name)
-                                    }
+                        val pomModel = getPomModel(dependency)
+                        if (pomModel != null) {
+                            builder.setDescription(pomModel.description)
+                            builder.setHomepageUrl(pomModel.url)
+                            builder.setRepoUrl(pomModel.scm?.url)
+                            pomModel.licenses?.forEach {
+                                if (it.name != null && it.url != null) {
+                                    builder.addLicense(it.name, it.url)
+                                } else if (it.name != null) {
+                                    builder.addLicense(it.name)
                                 }
-                            } else if (verbose) {
-                                println("could not find pom model for ${mvnDependency.groupId}:${mvnDependency.artifactId}:${mvnDependency.version}")
                             }
+                        } else if (verbose) {
+                            println("could not find pom model for ${mvnDependency.groupId}:${mvnDependency.artifactId}:${mvnDependency.version}")
                         }
 
                         val nextLevel = currentLevel + 1
@@ -101,16 +97,18 @@ class DependencyTreeBuilder(private val project: Project, private val level: Int
                         builder.buildDependency()
                     }
 
-    internal fun getPomModel(dependency: AetherDependency): Model? {
-        val jarFile = dependency.aether.resolve(dependency.artifact).root?.artifact?.file
-        val pomFilePath = jarFile?.absolutePath?.replaceAfterLast('.', "pom")
-        if (Files.exists(Paths.get(pomFilePath))) {
-            try {
-                val reader = MavenXpp3Reader()
-                val fileReader = FileReader(pomFilePath)
-                return reader.read(fileReader)
-            } catch (e: java.lang.Exception) {
-                warn("Exception during pom parsing", e)
+    internal open fun getPomModel(dependency: IClasspathDependency?): Model? {
+        if (dependency != null && dependency is AetherDependency) {
+            val jarFile = dependency.aether.resolve(dependency.artifact).root?.artifact?.file
+            val pomFilePath = jarFile?.absolutePath?.replaceAfterLast('.', "pom")
+            if (Files.exists(Paths.get(pomFilePath))) {
+                try {
+                    val reader = MavenXpp3Reader()
+                    val fileReader = FileReader(pomFilePath)
+                    return reader.read(fileReader)
+                } catch (e: java.lang.Exception) {
+                    warn("Exception during pom parsing", e)
+                }
             }
         }
         return null
