@@ -40,7 +40,7 @@ val p = project {
         // dependency for development and debugging
         // compile("com.beust:kobalt:")
 
-        compile("de.eacg:ecs-java-client:0.2.0")
+        compile("de.eacg:ecs-java-client:0.2.1")
         compile("org.codehaus.plexus:plexus-utils:jar:3.1.0")
     }
 
