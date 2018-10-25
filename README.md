@@ -81,6 +81,14 @@ All configuration properties
 
 * *verbose* (Optional): Increases the output produced by the plugin to get additional information. *Default:* false
 
+* *proxyUrl* (Optional): Url of the proxy server if a proxy should be used.
+
+* *proxyPort* (Optional): Port of the proxy server. *Default:* 8080
+
+* *proxyUser* (Optional): Username if proxy server requires authentication.
+
+* *proxyPass* (Optional): Password if proxy server requires authentication.
+
 # How to obtain a TrustSource API Key
 TrustSource provide a free version. You may tregister and select the egar wheel on the upper right side and select API keys from the menu. Then select API-Key and generate the key. Paste user & API key into your local settings file and run your scan. Be compliant ;-)
 

@@ -110,6 +110,10 @@ class EcsPlugin : BasePlugin() {
         if (config?.apiKey != null) apiConfig.setApiKey(config?.apiKey)
         if (config?.baseUrl != null) apiConfig.setBaseUrl(config?.baseUrl)
         if (config?.apiPath != null) apiConfig.setApiPath(config?.apiPath)
+        if (config?.proxyUrl != null) apiConfig.setProxyUrl(config?.proxyUrl)
+        if (config?.proxyPort != null) apiConfig.setProxyPort(config?.proxyPort)
+        if (config?.proxyUser != null) apiConfig.setProxyUser(config?.proxyUser)
+        if (config?.proxyPass != null) apiConfig.setProxyPass(config?.proxyPass)
 
         val missingConfigKeys = apiConfig.validate()
         if (missingConfigKeys.isNotEmpty()) {
