@@ -19,7 +19,67 @@ Please see the following links for more details on the corresponding package man
 * [nuget (.NET)](https://github.com/eacg-gmbh/ecs-nuget)
 
 # Quick Setup
-tbc
+It is pretty simple to include the TrustSource scan into your existing Kobalt projects. Make use of the ecs-kobalt-plugin by declaring it in your Build-file under the ``buildScript`` directive in the ``plugins`` section as seen below.
+
+```
+val bs = buildScript {
+    ...
+    plugins("de.eacg:ecs-kobalt-plugin:0.1")
+}
+```
+
+Then configure the plugin with your security credentials by using the ``ecsConfig`` directive in your Build-file.
+
+```
+val ecs = ecsConfig {
+    apiKey = "YOUR API KEY"
+    userName = "YOUR LOGIN NAME (email)"
+    projectName = "YOUR PROJECT NAME"
+}
+```
+
+Finally you can execute Kobalt with the goal ``dependency-scan`` to scan your project and upload the result to TrustSource: ``./kobaltw dependency-scan``
+
+# Advanced Setup
+## Use properties file for credentials
+The Kobalt-plugin is able to read the TrustSource access credentials (userName, apiKey) from a properties file in JSON format. This allows sharing of the TrustSource credentials with other projects and also with other build tools.
+
+**properties file ‘ecs-settings.json’ in your home directory:**
+
+```
+{
+    "userName": "YOUR LOGIN NAME (email)",
+    "apiKey": "YOUR API KEY"
+}
+```
+
+Adjust the configuration of the Kobalt-plugin by specifying an additional credentials variable under the ``ecsConfig`` directive. In the variable define the path to your properties file and the Kobalt-plugin will then read the properties from this file. The tilde, ‘~’, represents your user home directory, the dot, ‘.’ stands for the current working directory and forward slashes ‘/’ are used to separate sub-directories.
+
+**The modified Build-file:**
+
+```
+val ecs = ecsConfig {
+    credentials = "~/ecs-settings.json"
+    projectName = "YOUR PROJECT NAME"
+}
+```
+
+# Reference
+All configuration properties
+
+* *credentials* (Optional): Path to a JSON file which holds ‘userName’ and ‘apiKey’ credentials. Use ‘~’ as shortcut to your home directory and ‘.’ for the current working directory. A forward slash ‘/’ separates directories. *Default:* apiKey and userName are expected to be set in the plugin configuration
+
+* *apiKey* (Required, if not specified in credentials file): This key permits the access to TrustSource. Create or retrieve the key from your profile settings of the ECS web application.
+        
+* *userName* (Required, if not specified in credentials file.): Identifies the initiator of the data transfer.
+    
+* *projectName* (Required): For which project is the dependency information transferred.
+    
+* *skip* (Optional): Set to true to disable the ecs-kobalt-plugin. *Default:* false
+    
+* *skipTransfer* (Optional): Set to true to execute a dry run and do not transfer anything. *Default:* false
+
+* *verbose* (Optional): Increases the output produced by the plugin to get additional information. *Default:* false
 
 # How to obtain a TrustSource API Key
 TrustSource provide a free version. You may tregister and select the egar wheel on the upper right side and select API keys from the menu. Then select API-Key and generate the key. Paste user & API key into your local settings file and run your scan. Be compliant ;-)
